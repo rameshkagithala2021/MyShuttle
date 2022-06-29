@@ -23,9 +23,11 @@ steps:
   inputs:
     artifactsFeeds: 'ajaydevopsdemo'
 
-- task: Npm@1
+- task: NuGetCommand@2
   inputs:
-    command: 'install'
+    command: 'restore'
+    restoreSolution: '**/*.sln'
+    feedsToUse: 'select'
 
 - task: PublishBuildArtifacts@1
   inputs:
