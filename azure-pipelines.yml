@@ -23,6 +23,9 @@ steps:
   inputs:
     artifactsFeeds: 'ajaydevopsdemo'
 
+- task: Npm@1
+  inputs:
+    command: 'install'
 
 - task: PublishBuildArtifacts@1
   inputs:
