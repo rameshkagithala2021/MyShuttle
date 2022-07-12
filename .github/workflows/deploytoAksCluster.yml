@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: newacrdemo.azurecr.io
+        username: ${{ secrets.acr_newacrdemo_username }}
+        password: ${{ secrets.acr_newacrdemo_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/src" -f  "src/Dockerfile" -t newacrdemo.azurecr.io/azaksnew:${{ github.sha }} --label dockerfile-path=src/Dockerfile
+        docker push newacrdemo.azurecr.io/azaksnew:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_azaksnew_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep azaksnew9f69 | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace azaksnew9f69`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: azaksnew9f69
+        container-registry-url: newacrdemo.azurecr.io
+        container-registry-username: ${{ secrets.acr_newacrdemo_username }}
+        container-registry-password: ${{ secrets.acr_newacrdemo_password }}
+        secret-name: azaksnewdockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: azaksnew9f69
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+        images: |
+          newacrdemo.azurecr.io/azaksnew:${{ github.sha }}
+        imagepullsecrets: |
+          azaksnewdockerauth
