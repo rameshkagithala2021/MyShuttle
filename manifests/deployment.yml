@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "azaksnew-1f4e"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "azaksnew-1f4e"
+  template:
+    metadata:
+      labels:
+        app: "azaksnew-1f4e"
+    spec:
+      containers:
+        - name: "azaksnew-1f4e"
+          image: "newacrdemo.azurecr.io/azaksnew"
+          ports:
+          - containerPort: 80
